@@ -28,8 +28,32 @@ for i = #latest_console_log_rev, 1, -1 do
     console_log = console_log .. latest_console_log_rev[i] .. "\n"
 end
 
+-- Get some useful information
+local ip_address = game.GetIPAddress()
+local server_name = GetConVar("hostname"):GetString()
+local gamemode = (GM or GAMEMODE).Name
+if ((GM or GAMEMODE).BaseClass) then
+    gamemode = gamemode .. " (derived from " .. (GM or GAMEMODE).BaseClass.Name .. ")"
+end
+local avg_ping = 0
+for _,v in ipairs(player.GetHumans()) do
+    avg_ping = avg_ping + v:Ping()
+end
+avg_ping = tostring(math.Round(avg_ping / #player.GetHumans()))
+
+-- Add the useful information at the top of the console log
+local console_log_header = "[[ Server details ]]\n"
+console_log_header = "Server name: ".. server_name .."\n"
+console_log_header = "IP Address: ".. ip_address .."\n"
+console_log_header = "Gamemode: ".. gamemode .."\n"
+console_log_header = "Average ping: ".. avg_ping .."\n"
+console_log_header = console_log_header .. "\n[[ Console log ]]\n\n"
+
+console_log = console_log_header .. console_log
+
 MsgC(Color(255,0,0), "[GMS] ", Color(255,255,255), "Sending your console log to GmodStore...", "\n")
 
+-- Prepare and send a multipart/form-data HTTP request to the GmodStore API
 local boundary = "abcd"
 local header_b = 'Content-Disposition: form-data; name="file"; filename="console.log"\r\nContent-Type: application/octet-stream\r\n'
 local file_content =  "--" ..boundary .. "\r\n" ..header_b .."\r\n".. console_log .. "\r\n--" .. boundary .."--\r\n"
