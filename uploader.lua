@@ -43,10 +43,10 @@ avg_ping = tostring(math.Round(avg_ping / #player.GetHumans()))
 
 -- Add the useful information at the top of the console log
 local console_log_header = "[[ Server details ]]\n"
-console_log_header = "Server name: ".. server_name .."\n"
-console_log_header = "IP Address: ".. ip_address .."\n"
-console_log_header = "Gamemode: ".. gamemode .."\n"
-console_log_header = "Average ping: ".. avg_ping .."\n"
+console_log_header = console_log_header .. "Server name: ".. server_name .."\n"
+console_log_header = console_log_header .. "IP Address: ".. ip_address .."\n"
+console_log_header = console_log_header .. "Gamemode: ".. gamemode .."\n"
+console_log_header = console_log_header .. "Average ping: ".. avg_ping .."\n"
 console_log_header = console_log_header .. "\n[[ Console log ]]\n\n"
 
 console_log = console_log_header .. console_log
