@@ -1,16 +1,39 @@
-local console_log_raw
-if (file.Exists("logs/latest.log", "GAME")) then
-    console_log_raw = file.Read("logs/latest.log", "GAME")
-else
-    console_log_raw = file.Read("console.log", "GAME")
+-- Helper functions
+function ternary (cond, T, F)
+    if cond then return T else return F end
 end
 
+-- Locate the console log
+local console_log_raw
+
+local latest_log_path = "logs/latest.log"
+local latest_log_time = 0
+
+local console_log_path = "console.log"
+local console_log_time = 0
+
+if (file.Exists(latest_log_path, "GAME")) then
+    latest_log_time = file.Time(latest_log_path, "GAME")
+end
+
+if (file.Exists(console_log_path, "GAME")) then
+    console_log_time = file.Time(console_log_path, "GAME")
+end
+
+-- Grab the last modified file
+console_log_raw = file.Read(ternary(console_log_time > latest_log_time, console_log_path, latest_log_path))
+
 if !console_log_raw then
-  MsgC(Color(255,0,0), "[GMS] ", Color(255,255,255), "You either need to enable condebug on your server, or your console log is empty.", "\n")
+  MsgC(Color(255,0,0), "[GMS] ", color_white, "Your console log does not exist. Are you sure condebug is enabled on your server?", "\n")
   return
 end
 
-MsgC(Color(255,0,0), "[GMS] ", Color(255,255,255), "Plucking your console log...", "\n")
+if #console_log_raw == 0 then
+  MsgC(Color(255,0,0), "[GMS] ", color_white, "Your console log is empty. There is nothing to upload.", "\n")
+  return
+end
+
+MsgC(Color(0,255,0), "[GMS] ", color_white, "Plucking your console log...", "\n")
 
 local console_log_lines = string.Explode("\n", console_log_raw)
 local latest_console_log_rev = {}
@@ -23,35 +46,47 @@ for i = #console_log_lines, 1, -1 do
     end
 end
 
+-- Throw an error if we have too many lines since start-up
+if #latest_console_log_rev > 20000 then
+  MsgC(Color(255,0,0), "[GMS] ", color_white, "Your console log is too big. Please delete it and restart your server. Remember to trigger the error you are experiencing before retrying.", "\n")
+  return
+end
+
 local console_log = ""
 for i = #latest_console_log_rev, 1, -1 do
     console_log = console_log .. latest_console_log_rev[i] .. "\n"
 end
 
 -- Get some useful information
-local ip_address = game.GetIPAddress()
-local server_name = GetConVar("hostname"):GetString()
 local gamemode = (GM or GAMEMODE).Name
 if ((GM or GAMEMODE).BaseClass) then
     gamemode = gamemode .. " (derived from " .. (GM or GAMEMODE).BaseClass.Name .. ")"
 end
+
+local humans = player.GetHumans()
 local avg_ping = 0
-for _,v in ipairs(player.GetHumans()) do
+for _,v in ipairs(humans) do
     avg_ping = avg_ping + v:Ping()
 end
-avg_ping = tostring(math.Round(avg_ping / #player.GetHumans()))
+
+avg_ping = tostring(math.Round(avg_ping / #humans))
 
 -- Add the useful information at the top of the console log
-local console_log_header = "[[ Server details ]]\n"
-console_log_header = console_log_header .. "Server name: ".. server_name .."\n"
-console_log_header = console_log_header .. "IP Address: ".. ip_address .."\n"
+local console_log_header = "--- [[ Server details ]] ---\n"
+console_log_header = console_log_header .. "Server name: ".. GetConVar("hostname"):GetString() .."\n"
+console_log_header = console_log_header .. "Is dedicated: ".. game.IsDedicated() .."\n"
+console_log_header = console_log_header .. "IP Address: ".. game.GetIPAddress() .."\n"
 console_log_header = console_log_header .. "Gamemode: ".. gamemode .."\n"
+console_log_header = console_log_header .. "Map: ".. game.GetMap() .."\n"
+console_log_header = console_log_header .. "Players: ".. #humans .."\n"
 console_log_header = console_log_header .. "Average ping: ".. avg_ping .."\n"
-console_log_header = console_log_header .. "\n[[ Console log ]]\n\n"
+console_log_header = console_log_header .. "Entity count: ".. ents.GetCount() .."\n"
+console_log_header = console_log_header .. "Uptime in seconds (CurTime): ".. CurTime() .."\n"
+console_log_header = console_log_header .. "\n--- [[ Console log ]] ---\n"
 
 console_log = console_log_header .. console_log
 
-MsgC(Color(255,0,0), "[GMS] ", Color(255,255,255), "Sending your console log to GmodStore...", "\n")
+MsgC(Color(0,255,0), "[GMS] ", color_white, "Sending your console log to GmodStore...", "\n")
 
 -- Prepare and send a multipart/form-data HTTP request to the GmodStore API
 local boundary = "abcd"
@@ -67,10 +102,13 @@ local request = {
     },
     success = function(status_code, body)
         if (status_code ~= 201) then
-            MsgC(Color(255,0,0), "[GMS] ", Color(255,255,255), "HTTP Error " .. status_code .. " " .. body, "\n")
+            MsgC(Color(255,0,0), "[GMS] ", color_white, "HTTP request failed with status code " .. status_code .. ", and response body: " .. body, "\n")
         else
-            MsgC(Color(255,0,0), "[GMS] ", Color(255,255,255), "Successfully uploaded your console log to your GmodStore support ticket ", "\n")
+            MsgC(Color(0,255,0), "[GMS] ", color_white, "Successfully uploaded your console log to your GmodStore support ticket", "\n")
         end
+    end,
+    failed = function(reason)
+        MsgC(Color(255,0,0), "[GMS] ", color_white, "HTTP request failed with reason: ".. reason ..". Please try again later.", "\n")
     end,
     type = "multipart/form-data; boundary=" .. boundary,
     body = file_content
