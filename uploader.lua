@@ -81,7 +81,6 @@ console_log_header = console_log_header .. "Map: ".. game.GetMap() .."\n"
 console_log_header = console_log_header .. "Players: ".. #humans .."\n"
 console_log_header = console_log_header .. "Average ping: ".. avg_ping .."\n"
 console_log_header = console_log_header .. "Entity count: ".. ents.GetCount() .."\n"
-console_log_header = console_log_header .. "Uptime in seconds (CurTime): ".. CurTime() .."\n"
 console_log_header = console_log_header .. "\n--- [[ Console log ]] ---\n"
 
 console_log = console_log_header .. console_log
