@@ -21,7 +21,7 @@ if (file.Exists(console_log_path, "GAME")) then
 end
 
 -- Grab the last modified file
-console_log_raw = file.Read(ternary(console_log_time > latest_log_time, console_log_path, latest_log_path))
+console_log_raw = file.Read(ternary(console_log_time > latest_log_time, console_log_path, latest_log_path), "GAME")
 
 if !console_log_raw then
   MsgC(Color(255,0,0), "[GMS] ", color_white, "Your console log does not exist. Are you sure condebug is enabled on your server?", "\n")
@@ -74,13 +74,14 @@ avg_ping = tostring(math.Round(avg_ping / #humans))
 -- Add the useful information at the top of the console log
 local console_log_header = "--- [[ Server details ]] ---\n"
 console_log_header = console_log_header .. "Server name: ".. GetConVar("hostname"):GetString() .."\n"
-console_log_header = console_log_header .. "Is dedicated: ".. game.IsDedicated() .."\n"
+console_log_header = console_log_header .. "Is dedicated: ".. ternary(game.IsDedicated(), "yes", "no") .."\n"
 console_log_header = console_log_header .. "IP Address: ".. game.GetIPAddress() .."\n"
 console_log_header = console_log_header .. "Gamemode: ".. gamemode .."\n"
 console_log_header = console_log_header .. "Map: ".. game.GetMap() .."\n"
 console_log_header = console_log_header .. "Players: ".. #humans .."\n"
 console_log_header = console_log_header .. "Average ping: ".. avg_ping .."\n"
 console_log_header = console_log_header .. "Entity count: ".. ents.GetCount() .."\n"
+console_log_header = console_log_header .. "Uptime (SysTime): ".. math.round(SysTime()) .." seconds \n"
 console_log_header = console_log_header .. "\n--- [[ Console log ]] ---\n"
 
 console_log = console_log_header .. console_log
