@@ -104,11 +104,10 @@ local header_b = 'Content-Disposition: form-data; name="file"; filename="console
 local file_content =  "--" ..boundary .. "\r\n" ..header_b .."\r\n".. console_log .. "\r\n--" .. boundary .."--\r\n"
 
 local request = {
-    url = "https://www.gmodstore.com/api/v3/tickets/{{ticketId}}/attachments",
+    url = "https://www.gmodstore.com/api/v3/tickets/log-requests/{{logRequestId}}",
     method = "POST",
     headers = {
-        ["Content-Length"] = file_content:len(),
-        ["Authorization"] = "Bearer {{bearerToken}}"
+        ["Content-Length"] = file_content:len()
     },
     success = function(status_code, body)
         if (status_code ~= 201) then
