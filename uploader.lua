@@ -21,7 +21,8 @@ if (file.Exists(console_log_path, "GAME")) then
 end
 
 -- Grab the last modified file
-console_log_raw = file.Read(gms_ternary(console_log_time > latest_log_time, console_log_path, latest_log_path), "GAME")
+local log_path = gms_ternary(console_log_time > latest_log_time, console_log_path, latest_log_path)
+console_log_raw = file.Read(log_path, "GAME")
 
 if !console_log_raw then
   MsgC(Color(255,0,0), "[GMS] ", color_white, "Your console log does not exist. Are you sure condebug is enabled on your server?", "\n")
@@ -79,6 +80,7 @@ end
 
 -- Add the useful information at the top of the console log
 local console_log_header = "--- [[ Server details ]] ---\n"
+console_log_header = console_log_header .. "Log path: " .. log_path .. "\n"
 console_log_header = console_log_header .. "Server name: ".. GetConVar("hostname"):GetString() .."\n"
 console_log_header = console_log_header .. "Is dedicated: ".. gms_ternary(game.IsDedicated(), "yes", "no") .."\n"
 console_log_header = console_log_header .. "IP Address: ".. game.GetIPAddress() .."\n"
