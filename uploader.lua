@@ -22,6 +22,9 @@ end
 
 -- Grab the last modified file
 local log_path = gms_ternary(console_log_time > latest_log_time, console_log_path, latest_log_path)
+
+MsgC(Color(0,255,0), "[GMS] ", color_white, "Reading console log from " .. log_path .. "...", "\n")
+
 console_log_raw = file.Read(log_path, "GAME")
 
 if !console_log_raw then
