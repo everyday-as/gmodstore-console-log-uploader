@@ -21,7 +21,7 @@ if (file.Exists(console_log_path, "GAME")) then
 end
 
 -- Grab the last modified file
-local log_path = gms_ternary(console_log_time > latest_log_time, console_log_path, latest_log_path)
+local log_path = gms_ternary(console_log_time >= latest_log_time, console_log_path, latest_log_path)
 
 MsgC(Color(0,255,0), "[GMS] ", color_white, "Reading console log from " .. log_path .. "...", "\n")
 
